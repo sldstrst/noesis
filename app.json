@@ -36,7 +36,12 @@
       "expo-router",
       "expo-font",
       "expo-web-browser",
-      "expo-audio"
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
