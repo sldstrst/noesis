@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Platform, Pressable } from 'react-native';
-import { requestNotificationPermissionsAsync, setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { File } from 'expo-file-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
@@ -74,7 +74,6 @@ export default function AudioPlayer() {
       if (playing) player.pause();
       else {
         if (Platform.OS !== 'web') {
-          if (Platform.OS === 'android') await requestNotificationPermissionsAsync();
           player.setActiveForLockScreen(true, {
             title: lecture?.title,
             artist: 'НОЭЗИС.ЛЕКТОРИЙ',

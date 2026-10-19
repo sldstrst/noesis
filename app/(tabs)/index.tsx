@@ -37,7 +37,7 @@ function Cover({ size = 88 }: { size?: number }) {
 }
 
 function Header() {
-  return <YStack backgroundColor={TEAL} paddingHorizontal="$5" paddingTop="$4" paddingBottom="$5" borderBottomLeftRadius={24} borderBottomRightRadius={24}>
+  return <YStack backgroundColor={TEAL} paddingHorizontal="$5" paddingTop="$4" paddingBottom="$5">
     <XStack alignItems="center" justifyContent="space-between">
       <YStack>
         <SizableText color="#d4e8e2" fontSize={10} letterSpacing={2.2} fontWeight="700">АУДИОЛЕКЦИИ И ПОДКАСТЫ</SizableText>

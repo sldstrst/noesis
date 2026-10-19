@@ -15,7 +15,7 @@ function Artwork() {
 }
 
 function Header() {
-  return <YStack backgroundColor={TEAL} paddingHorizontal="$5" paddingTop="$4" paddingBottom="$5" borderBottomLeftRadius={24} borderBottomRightRadius={24}>
+  return <YStack backgroundColor={TEAL} paddingHorizontal="$5" paddingTop="$4" paddingBottom="$5">
     <SizableText color="#d4e8e2" fontSize={10} letterSpacing={2.2} fontWeight="700">ВАШЕ ПРОСТРАНСТВО</SizableText>
     <SizableText color="white" fontSize={21} fontWeight="800" letterSpacing={0.5} marginTop="$1">НОЭЗИС.ЛЕКТОРИЙ</SizableText>
   </YStack>;
