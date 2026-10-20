@@ -11,7 +11,6 @@ import PlayerTools from '@/components/player/PlayerTools';
 import type { DownloadsRow, LecturesRow, PurchasesRow } from '@/lib/db-types';
 
 const TEAL = '#3a8378';
-const PLAYBACK_RATES = [0.5, 1, 1.5, 2] as const;
 function clock(seconds: number) {
   const safeSeconds = Math.floor(seconds);
   return `${String(Math.floor(safeSeconds / 60)).padStart(2, '0')}:${String(safeSeconds % 60).padStart(2, '0')}`;
@@ -22,8 +21,7 @@ export default function AudioPlayer() {
   const player = useAudioPlayer(null);
   const status = useAudioPlayerStatus(player);
   const [user, setUser] = useState<{ id: string } | null>(null);
-  const [playbackRate, setPlaybackRate] = useState<(typeof PLAYBACK_RATES)[number]>(1);
-  const [showSpeedOptions, setShowSpeedOptions] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
   const [playError, setPlayError] = useState('');
   const [downloading, setDownloading] = useState(false);
   const [timerEnd, setTimerEnd] = useState<number | null>(null);
@@ -91,12 +89,11 @@ export default function AudioPlayer() {
     void player.seekTo(Math.max(0, Math.min(duration, position + seconds)));
   }
 
-  function changePlaybackRate(rate: (typeof PLAYBACK_RATES)[number]) {
+  function changePlaybackRate(rate: number) {
     if (!ready) return;
     player.playbackRate = rate;
     player.shouldCorrectPitch = true;
     setPlaybackRate(rate);
-    setShowSpeedOptions(false);
   }
 
   async function downloadAudio() {
@@ -122,16 +119,11 @@ export default function AudioPlayer() {
     </YStack>
     <YStack gap="$3">
       <YStack gap="$2"><YStack height={5} borderRadius={5} backgroundColor="#ffffff55" overflow="hidden"><YStack height={5} width={`${progress}%`} backgroundColor="white" borderRadius={5} /></YStack><XStack justifyContent="space-between"><SizableText color="#e4f0ed" fontSize={12}>{clock(position)}</SizableText><SizableText color="#e4f0ed" fontSize={12}>{clock(duration)}</SizableText></XStack></YStack>
-      <XStack alignItems="center" justifyContent="center" gap="$4">
-        <Pressable onPress={() => seekBy(-15)} disabled={!ready} accessibilityLabel="Перемотать на 15 секунд назад" style={{ minWidth: 64, minHeight: 52, alignItems: 'center', justifyContent: 'center', opacity: ready ? 1 : 0.6 }}><SizableText color="#eaf5f1" fontSize={14} fontWeight="700">−15 сек</SizableText></Pressable>
-        <Pressable onPress={togglePlayback} disabled={!ready} accessibilityLabel={playing ? 'Пауза' : 'Воспроизвести'} style={({ pressed }) => ({ width: 72, height: 72, borderRadius: 36, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', transform: [{ scale: pressed ? 0.95 : 1 }], opacity: ready ? 1 : 0.7 })}>{ready ? playing ? <Pause color={TEAL} size={29} fill={TEAL} /> : <Play color={TEAL} size={29} fill={TEAL} /> : <Spinner color={TEAL} />}</Pressable>
-        <Pressable onPress={() => seekBy(15)} disabled={!ready} accessibilityLabel="Перемотать на 15 секунд вперёд" style={{ minWidth: 64, minHeight: 52, alignItems: 'center', justifyContent: 'center', opacity: ready ? 1 : 0.6 }}><SizableText color="#eaf5f1" fontSize={14} fontWeight="700">+15 сек</SizableText></Pressable>
+      <XStack alignItems="center" justifyContent="space-between" paddingHorizontal="$2">
+        <Pressable onPress={() => seekBy(-15)} disabled={!ready} accessibilityLabel="Перемотать на 15 секунд назад" style={{ minWidth: 72, minHeight: 44, alignItems: 'center', justifyContent: 'center', opacity: ready ? 1 : 0.6 }}><SizableText color="#eaf5f1" fontSize={13} fontWeight="700">−15 сек</SizableText></Pressable>
+        <Pressable onPress={() => seekBy(15)} disabled={!ready} accessibilityLabel="Перемотать на 15 секунд вперёд" style={{ minWidth: 72, minHeight: 44, alignItems: 'center', justifyContent: 'center', opacity: ready ? 1 : 0.6 }}><SizableText color="#eaf5f1" fontSize={13} fontWeight="700">+15 сек</SizableText></Pressable>
       </XStack>
-      <YStack alignItems="center" gap="$2">
-        <Pressable onPress={() => setShowSpeedOptions((shown) => !shown)} disabled={!ready} accessibilityRole="button" accessibilityLabel={`Скорость воспроизведения ${playbackRate}x`} style={{ minHeight: 42, minWidth: 132, borderRadius: 21, borderWidth: 1, borderColor: '#ffffff70', paddingHorizontal: 16, justifyContent: 'center', alignItems: 'center', opacity: ready ? 1 : 0.65 }}><SizableText color="white" fontSize={13} fontWeight="700">Скорость · {playbackRate}x</SizableText></Pressable>
-        {showSpeedOptions ? <XStack gap="$2" paddingTop="$1">{PLAYBACK_RATES.map((rate) => { const active = playbackRate === rate; return <Pressable key={rate} onPress={() => changePlaybackRate(rate)} accessibilityRole="button" accessibilityState={{ selected: active }} style={{ minWidth: 54, minHeight: 42, borderRadius: 14, backgroundColor: active ? 'white' : '#ffffff25', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 }}><SizableText color={active ? TEAL : 'white'} fontSize={13} fontWeight="700">{rate}x</SizableText></Pressable>; })}</XStack> : null}
-      </YStack>
-      <PlayerTools lecture={lecture} downloading={downloading} downloaded={downloaded} sleepRemaining={sleepSecondsLeft ? `Осталось ${Math.ceil(sleepSecondsLeft / 60)} мин` : null} onDownload={downloadAudio} onSetSleepTimer={setSleepTimer} />
+      <PlayerTools lecture={lecture} downloading={downloading} downloaded={downloaded} sleepRemaining={sleepSecondsLeft ? `Осталось ${Math.ceil(sleepSecondsLeft / 60)} мин` : null} playbackRate={playbackRate} ready={ready} playButton={<Pressable onPress={togglePlayback} disabled={!ready} accessibilityLabel={playing ? 'Пауза' : 'Воспроизвести'} style={({ pressed }) => ({ width: 68, height: 68, borderRadius: 34, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', transform: [{ scale: pressed ? 0.95 : 1 }], opacity: ready ? 1 : 0.7 })}>{ready ? playing ? <Pause color={TEAL} size={27} fill={TEAL} /> : <Play color={TEAL} size={27} fill={TEAL} /> : <Spinner color={TEAL} />}</Pressable>} onDownload={downloadAudio} onSetSleepTimer={setSleepTimer} onChangePlaybackRate={changePlaybackRate} />
       {playError ? <SizableText color="#ffe5dd" fontSize={12} textAlign="center">{playError}</SizableText> : null}
       <SizableText color="#cde2dc" fontSize={12} textAlign="center">Лекторий знаний и идей</SizableText>
     </YStack>

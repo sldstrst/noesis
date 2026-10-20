@@ -1,38 +1,48 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Modal, Pressable, Platform } from 'react-native';
-import { Download, Moon, FileText, Check, YStack, XStack, SizableText, ScrollView } from '@blinkdotnew/mobile-ui';
+import { Download, Moon, FileText, Check, Gauge, YStack, XStack, SizableText, ScrollView } from '@blinkdotnew/mobile-ui';
 import type { LecturesRow } from '@/lib/db-types';
 
 const TEAL = '#3a8378';
 const TIMER_OPTIONS = [15, 30, 45, 60] as const;
+const PLAYBACK_RATES = [0.5, 1, 1.5, 2] as const;
 
 type PlayerToolsProps = {
   lecture: LecturesRow;
   downloading: boolean;
   downloaded: boolean;
   sleepRemaining: string | null;
+  playbackRate: number;
+  ready: boolean;
+  playButton: ReactNode;
   onDownload: () => void;
   onSetSleepTimer: (minutes: number | null) => void;
+  onChangePlaybackRate: (rate: number) => void;
 };
 
-export default function PlayerTools({ lecture, downloading, downloaded, sleepRemaining, onDownload, onSetSleepTimer }: PlayerToolsProps) {
+export default function PlayerTools({ lecture, downloading, downloaded, sleepRemaining, playbackRate, ready, playButton, onDownload, onSetSleepTimer, onChangePlaybackRate }: PlayerToolsProps) {
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [timerOpen, setTimerOpen] = useState(false);
+  const [speedOpen, setSpeedOpen] = useState(false);
   const hasTranscript = !!lecture.transcript?.trim();
 
   return <>
-    <XStack justifyContent="center" gap="$2" flexWrap="wrap">
-      <Pressable accessibilityRole="button" onPress={() => setTranscriptOpen(true)} disabled={!hasTranscript} style={{ minHeight: 46, minWidth: 112, borderRadius: 14, borderWidth: 1, borderColor: '#ffffff55', paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, opacity: hasTranscript ? 1 : 0.5 }}>
-        <FileText color="white" size={16} /><SizableText color="white" fontSize={12} fontWeight="700">Расшифровка</SizableText>
+    <XStack alignItems="center" justifyContent="center" gap="$2" flexWrap="nowrap">
+      <Pressable accessibilityRole="button" accessibilityLabel={sleepRemaining ? `Таймер сна: ${sleepRemaining}` : 'Таймер сна'} onPress={() => setTimerOpen(true)} style={({ pressed }) => ({ width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: '#ffffff70', alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#ffffff30' : '#ffffff12', transform: [{ scale: pressed ? 0.94 : 1 }] })}>
+        <Moon color="white" size={19} />
       </Pressable>
-      <Pressable accessibilityRole="button" onPress={() => setTimerOpen(true)} style={{ minHeight: 46, minWidth: 112, borderRadius: 14, borderWidth: 1, borderColor: '#ffffff55', paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-        <Moon color="white" size={16} /><SizableText color="white" fontSize={12} fontWeight="700">{sleepRemaining ?? 'Таймер сна'}</SizableText>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Скорость воспроизведения ${playbackRate}x`} onPress={() => setSpeedOpen((open) => !open)} disabled={!ready} style={({ pressed }) => ({ width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: '#ffffff70', alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#ffffff30' : '#ffffff12', opacity: ready ? 1 : 0.6, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
+        <YStack alignItems="center" justifyContent="center" gap={-2}><Gauge color="white" size={17} /><SizableText color="white" fontSize={9} fontWeight="800">{playbackRate}×</SizableText></YStack>
       </Pressable>
-      <Pressable accessibilityRole="button" onPress={onDownload} disabled={downloading || downloaded || Platform.OS === 'web'} style={{ minHeight: 46, minWidth: 112, borderRadius: 14, borderWidth: 1, borderColor: '#ffffff55', paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, opacity: downloading || downloaded || Platform.OS === 'web' ? 0.6 : 1 }}>
-        {downloaded ? <Check color="white" size={16} /> : <Download color="white" size={16} />}
-        <SizableText color="white" fontSize={12} fontWeight="700">{downloaded ? 'Сохранено' : downloading ? 'Загрузка…' : 'Скачать'}</SizableText>
+      {playButton}
+      <Pressable accessibilityRole="button" accessibilityLabel={downloaded ? 'Лекция сохранена' : downloading ? 'Загрузка лекции' : 'Скачать лекцию'} onPress={onDownload} disabled={downloading || downloaded || Platform.OS === 'web'} style={({ pressed }) => ({ width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: '#ffffff70', alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#ffffff30' : '#ffffff12', opacity: downloading || downloaded || Platform.OS === 'web' ? 0.6 : 1, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
+        {downloaded ? <Check color="white" size={19} /> : <Download color="white" size={19} />}
+      </Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel="Открыть стенограмму лекции" onPress={() => setTranscriptOpen(true)} disabled={!hasTranscript} style={({ pressed }) => ({ width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: '#ffffff70', alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? '#ffffff30' : '#ffffff12', opacity: hasTranscript ? 1 : 0.5, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
+        <FileText color="white" size={19} />
       </Pressable>
     </XStack>
+    {speedOpen ? <XStack justifyContent="center" gap="$2">{PLAYBACK_RATES.map((rate) => { const active = playbackRate === rate; return <Pressable key={rate} onPress={() => { onChangePlaybackRate(rate); setSpeedOpen(false); }} accessibilityRole="button" accessibilityState={{ selected: active }} style={{ minWidth: 54, minHeight: 42, borderRadius: 14, backgroundColor: active ? 'white' : '#ffffff25', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10 }}><SizableText color={active ? TEAL : 'white'} fontSize={13} fontWeight="700">{rate}x</SizableText></Pressable>; })}</XStack> : null}
 
     <Modal visible={transcriptOpen} animationType="slide" transparent onRequestClose={() => setTranscriptOpen(false)}>
       <YStack flex={1} backgroundColor="#00000088" justifyContent="flex-end">
