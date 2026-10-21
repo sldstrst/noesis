@@ -46,11 +46,27 @@ export type PurchasesRow = {
   createdAt: string
 }
 
+export type PushTokensRow = {
+  id: string
+  userId: string
+  token: string
+  createdAt: string
+}
+
 export type SavedLecturesRow = {
   id: string
   userId: string
   lectureId: string
   createdAt: string
+}
+
+export type SubscriptionsRow = {
+  id: string
+  userId: string
+  status: string
+  planType: string
+  startedAt: string
+  expiresAt: string
 }
 
 export type UsersRow = {
