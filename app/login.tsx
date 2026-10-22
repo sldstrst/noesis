@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { ArrowLeft, Eye, LockKeyhole, Mail, YStack, XStack, SizableText, Button, Input } from '@blinkdotnew/mobile-ui';
 import { Pressable } from 'react-native';
 import { blink } from '@/lib/blink';
+import { registerForPushNotifications } from '@/lib/pushNotifications';
 
 const BG = '#e8f3ef'; const CARD = '#F8F9FA'; const TEAL = '#3a8378';
 
@@ -17,6 +18,8 @@ export default function LoginScreen() {
     try {
       if (creating) await blink.auth.signUp({ email: email.trim().toLowerCase(), password });
       else await blink.auth.signInWithEmail(email.trim().toLowerCase(), password);
+      const user = await blink.auth.me();
+      if (user?.id) void registerForPushNotifications(user.id).catch((reason) => console.warn('Push registration failed:', reason));
       router.back();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Не удалось войти. Проверьте данные и попробуйте ещё раз.');
@@ -32,6 +35,7 @@ export default function LoginScreen() {
       <YStack gap="$2"><SizableText color="#45635d" fontSize={12} fontWeight="700">Пароль</SizableText><XStack alignItems="center" backgroundColor="#f0f5f2" borderRadius={13} paddingHorizontal="$3" gap="$2"><LockKeyhole color="#78918c" size={18} /><Input flex={1} height={48} borderWidth={0} backgroundColor="transparent" color="#203b35" placeholder="Введите пароль" placeholderTextColor="#90a29d" secureTextEntry value={password} onChangeText={setPassword} /></XStack></YStack>
       {message ? <SizableText color="#b44242" fontSize={12} lineHeight={18}>{message}</SizableText> : null}
       <Button height={50} borderRadius={14} backgroundColor={TEAL} color="white" fontWeight="700" marginTop="$1" disabled={busy || !email || !password} onPress={submit}>{busy ? 'Подождите…' : creating ? 'Зарегистрироваться' : 'Войти'}</Button>
+      {!creating ? <Button chromeless alignSelf="flex-end" padding="$1" color={TEAL} fontSize={12} fontWeight="700" onPress={() => router.push('/forgot-password')}>Забыли пароль?</Button> : null}
       <XStack alignItems="center" justifyContent="center" gap="$1"><SizableText color="#71847f" fontSize={13}>{creating ? 'Уже есть аккаунт?' : 'Впервые в лектории?'}</SizableText><Button chromeless padding="$1" color={TEAL} fontWeight="700" onPress={() => { setCreating(!creating); setMessage(''); }}>{creating ? 'Войти' : 'Создать аккаунт'}</Button></XStack>
     </YStack>
     <XStack alignItems="center" justifyContent="center" gap="$2"><Eye color="#78918c" size={14} /><SizableText color="#78918c" fontSize={11}>Ваши данные защищены</SizableText></XStack>
